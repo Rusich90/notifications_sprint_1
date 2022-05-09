@@ -1,0 +1,28 @@
+@startuml
+skinparam componentStyle uml2
+actor Админ as Admin
+actor Пользователи as Clients
+component AdminPanel
+component UGC
+component Auth
+component Scheduler
+component Workers
+database DataBase
+note right of DataBase: Информация о пользователях и их настройках
+queue "RabbitMQ" {
+left to right direction
+component email_for_prepare_queue
+component ready_email_queue
+}
+UGC --> email_for_prepare_queue: Лайки, комментарии
+Auth --> email_for_prepare_queue: Новый пользователь
+Admin --> AdminPanel
+AdminPanel --> email_for_prepare_queue: Моментальные письма\l(не подготовленные)
+AdminPanel -> Scheduler: Письма по расписанию
+Scheduler --> ready_email_queue : Письма по расписанию\l(подготовленные)
+ready_email_queue --> Workers
+email_for_prepare_queue --> Workers
+Workers -l-> Clients: Сообщения
+Scheduler --> DataBase
+Workers -> DataBase
+@enduml
