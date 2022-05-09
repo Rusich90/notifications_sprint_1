@@ -1,0 +1,38 @@
+services:
+
+  rabbitmq:
+    image: 'rabbitmq:3.9.16-management-alpine'
+    ports:
+      # The standard AMQP protocol port
+      - '5672:5672'
+      # HTTP management UI
+      - '15672:15672'
+    env_file:
+      - ./config/.env
+
+  mailhog:
+    image: mailhog/mailhog
+    logging:
+      driver: 'none'  # disable saving logs
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
+
+  db:
+    image: postgres:13-alpine
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+    env_file:
+      - ./config/.env
+
+  app:
+    build: .
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./:/code
+    env_file:
+      - ./config/.env
