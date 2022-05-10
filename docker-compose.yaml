@@ -36,3 +36,13 @@ services:
       - ./:/code
     env_file:
       - ./config/.env
+
+  api:
+    build: .
+    volumes:
+      - ./:/code
+    env_file:
+      - ./config/.env
+    ports:
+      - '8000:8000'
+    command: python3 api/main.py
