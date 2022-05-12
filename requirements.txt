@@ -6,3 +6,4 @@ requests==2.27.1
 fastapi==0.61.1
 uvicorn==0.12.2
 orjson==3.4.1
+websockets==10.2.0
