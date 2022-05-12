@@ -36,3 +36,26 @@ services:
       - ./:/code
     env_file:
       - ./config/.env
+  adm_panel:
+    build:
+      context: .
+      dockerfile: Dockerfile_adm_panel
+    stdin_open: true
+    tty: true
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./config/.env
+    depends_on:
+      - db
+
+  worker_ap:
+    build:
+      context: .
+      dockerfile: Dockerfile_worker_ap
+    stdin_open: true
+    tty: true
+    env_file:
+      - ./config/.env
+    depends_on:
+      - rabbitmq
