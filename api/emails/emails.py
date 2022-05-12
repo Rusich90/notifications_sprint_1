@@ -1,6 +1,7 @@
 import os
 import smtplib
 from email.message import EmailMessage
+from functools import lru_cache
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -44,3 +45,8 @@ class Emails:
         template = self._render_template()
         message.add_alternative(template, subtype='html')
         self.server.sendmail(self.config.user, self.data['recipients'], message.as_string())
+
+
+@lru_cache()
+def get_email_service() -> Emails:
+    return Emails()

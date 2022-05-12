@@ -284,3 +284,4 @@ draft.?.py
 k8s/
 *.env
 postgresql
+.DS_Store

@@ -1,11 +1,17 @@
 from pydantic import BaseSettings
 from pydantic import SecretStr
+import environ
+
+env_root = environ.Path(__file__) - 1
+env = environ.Env()
+env_file = str(env_root.path('.env'))
+env.read_env(env_file)
 
 
 class RabbitMQSettings(BaseSettings):
     default_user: str = 'guest'
     default_pass: SecretStr = 'guest'
-    host: str = 'localhost'
+    host: str = '127.0.0.1'
 
     class Config:
         env_prefix = "RABBITMQ_"
@@ -29,11 +35,8 @@ class SMTPSettings(BaseSettings):
 
 
 class PostgresSettings(BaseSettings):
-    host: str
-    port: int
-    dbname: str
-    password: str
-    user: str
-
-    class Config:
-        env_prefix = "POSTGRES_"
+    host: str = env('POSTGRES_HOST')
+    port: int = env('POSTGRES_PORT')
+    dbname: str = env('POSTGRES_DB')
+    password: str = env('POSTGRES_PASSWORD')
+    user: str = env('POSTGRES_USER')
