@@ -38,6 +38,7 @@ class RBConsumer():
         self.connection.close()
         self.connection = None
         logger.info('Stopped')
+
     def send_mail(self, data):
         filestring = data['file']
         file_bytes = filestring.encode('utf-8')
