@@ -1,49 +1,52 @@
 import logging.config
-import pika
-import json
 
+import backoff
+import pika
+from pika.exceptions import AMQPConnectionError
+
+from callbacks import welcome_email, all_email
 from config.logger_config import LOGGING_CONFIG
 from config.settings import RabbitMQSettings
-from emails import Emails
-from base64 import b64decode
 
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger('app_consumer')
 
-rabbit_config = RabbitMQSettings()
-credentials = pika.PlainCredentials(rabbit_config.default_user, rabbit_config.default_pass.get_secret_value())
-QUEUE = '_emails.send-all'
 
+class Consumer:
+    def __init__(self, connection_host):
+        self.connection_host = connection_host
+        self.connection = None
 
-class RBConsumer():
-    CONNECTION_HOST = pika.ConnectionParameters(host=rabbit_config.host, socket_timeout=15, credentials=credentials)
+    def start_receive(self):
+        channel = self._connection()
+        channel.basic_qos(prefetch_count=1)
 
-    def __init__(self, routing_key):
-        self.connection = pika.BlockingConnection(self.CONNECTION_HOST)
-        self.channel = self.connection.channel()
-        logger.info('Connecting to %s', self.CONNECTION_HOST)
-        self.routing_key = routing_key
+        channel.queue_declare(queue='_emails.send-all', durable=True)
+        channel.basic_consume(queue='_emails.send-all', on_message_callback=all_email)
 
-    def receive(self):
-        def callback(ch, method, properties, body):
-            data = json.loads(body.decode())
-            logger.info(" [x] Decoded %r" % data['first_name'])
-            self.send_mail(data)
+        channel.queue_declare(queue='welcome_email', durable=True)
+        channel.basic_consume(queue='welcome_email', on_message_callback=welcome_email)
 
-        self.channel.basic_qos(prefetch_count=1)
-        self.channel.basic_consume(queue='_emails.send-all', on_message_callback=callback, auto_ack=True)
-        self.channel.start_consuming()
+        logger.info('Consumer waiting for messages. To exit press CTRL+C')
+        channel.start_consuming()
+
+    @backoff.on_exception(backoff.expo, AMQPConnectionError)
+    def _connection(self):
+        self.connection = pika.BlockingConnection(connection_host)
+        return self.connection.channel()
 
     def close_connection(self):
         self.connection.close()
         self.connection = None
         logger.info('Stopped')
 
-    def send_mail(self, data):
-        filestring = data['file']
-        file_bytes = filestring.encode('utf-8')
-        file = b64decode(file_bytes)
-        with open("mail.html", "wb") as binary_file:
-            binary_file.write(file)
-        email = Emails()
-        email.send_email(data)
+
+if __name__ == '__main__':
+    config = RabbitMQSettings()
+    credentials = pika.PlainCredentials(config.default_user, config.default_pass.get_secret_value())
+    connection_host = pika.ConnectionParameters(host=config.host, credentials=credentials)
+    consumer = Consumer(connection_host)
+    try:
+        consumer.start_receive()
+    except KeyboardInterrupt:
+        consumer.close_connection()

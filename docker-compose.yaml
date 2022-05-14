@@ -9,6 +9,11 @@ services:
       - '15672:15672'
     env_file:
       - .env
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   mailhog:
     image: mailhog/mailhog
@@ -28,24 +33,12 @@ services:
     env_file:
       - .env
 
-  app:
-    build: .
-    stdin_open: true
-    tty: true
-    volumes:
-      - ./:/code
-    env_file:
-      - .env
-
   api:
-    build: .
-    volumes:
-      - ./:/code
+    build: api/.
     env_file:
       - .env
     ports:
       - '8000:8000'
-    command: python3 api/main.py
 
   adm_panel:
     build:
@@ -64,9 +57,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile_worker_ap
-    stdin_open: true
-    tty: true
     env_file:
       - .env
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy

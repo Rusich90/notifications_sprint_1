@@ -1,8 +1,6 @@
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Dict
-from typing import Optional
+from typing import Dict, Optional
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
