@@ -4,6 +4,8 @@ import logging.config
 from config.logger_config import LOGGING_CONFIG
 from emails.emails import Emails
 from short_url import ShortUrl
+from base64 import b64decode
+from db.database import PostgresDataBase
 
 logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger('app_consumer')
@@ -33,6 +35,19 @@ def welcome_email(ch, method, properties, body):
 
 def all_email(ch, method, properties, body):
     logger.info("Received message from all_email queue")
-    logger.info(body.decode())
+    data = json.loads(body.decode())
+    logger.info(data['user_list'])
+    filestring = data['file']
+    file_bytes = filestring.encode('utf-8')
+    file = b64decode(file_bytes)
+    with open("emails/templates/mail.html", "wb") as binary_file:
+        binary_file.write(file)
+    base = PostgresDataBase()
+    emails = Emails()
+    for user_id in data['user_list']:
+        user = base.get_user(user_id['id'])
+        data_to_mail = {'subject' : data['subject'], 'recipients' : user['email'], 'first_name' : user['first_name'], 'last_name' : user['last_name']}
+        emails.send_email(data_to_mail)
+
     ch.basic_ack(delivery_tag=method.delivery_tag)
     logger.info("Done")

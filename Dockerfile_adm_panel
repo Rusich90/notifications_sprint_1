@@ -1,7 +1,8 @@
 FROM python:3.9.9-slim-buster
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-COPY adminpanel/ /code/
+COPY adminpanel/requirements.txt /code/requirements.txt
 RUN pip install --upgrade pip && pip install -r /code/requirements.txt
+COPY adminpanel/ /code/
 WORKDIR /code
 ENTRYPOINT ["python", "/code/manage.py", "runserver", "0.0.0.0:8080"]
