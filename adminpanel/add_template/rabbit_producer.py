@@ -1,13 +1,8 @@
-import logging.config
 import sys
 
 import pika
 
-from config.logger_config import LOGGING_CONFIG
 from config.settings import RabbitMQSettings
-
-logging.config.dictConfig(LOGGING_CONFIG)
-logger = logging.getLogger('app_producer')
 
 
 rabbit_config = RabbitMQSettings()
@@ -18,7 +13,6 @@ channel = connection.channel()
 
 channel.queue_declare(queue='task_queue', durable=True)
 
-message = ' '.join(sys.argv[1:]) or "Hello World!"
 channel.basic_publish(
     exchange='',
     routing_key='task_queue',
@@ -26,5 +20,4 @@ channel.basic_publish(
     properties=pika.BasicProperties(
         delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE
     ))
-logger.info(" [x] Sent %r" % message)
 connection.close()

@@ -1,5 +1,4 @@
 import time
-from functools import lru_cache
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -37,8 +36,3 @@ class ShortUrl:
         data = self._get_data(user_id)
         resp = requests.post(self.url, headers=headers, json=data)
         return resp.json()['link']
-
-
-@lru_cache()
-def get_short_url_service() -> ShortUrl:
-    return ShortUrl()
