@@ -28,7 +28,10 @@ class Emails:
     def _get_headers(self,):
         message = EmailMessage()
         message["From"] = self.config.user
-        message["To"] = ",".join(self.data['recipients'])
+        if len(self.data['recipients']) > 1 :
+            message["To"] = ",".join(self.data['recipients'])
+        else :
+            message["To"] = self.data['recipients']
         message["Subject"] = self.data['subject']
         return message
 
@@ -37,9 +40,17 @@ class Emails:
         output = template.render(**self.data)
         return output
 
+    def _render_template_from_html(self):
+        template = self.template_dir.get_template('mail.html')
+        output = template.render(**self.data)
+        return output
+
     def send_email(self, data: dict):
         self.data = data
         message = self._get_headers()
-        template = self._render_template()
+        if 'html_template' in data :
+            template = self._render_template()
+        else :
+            template = self._render_template_from_html()
         message.add_alternative(template, subtype='html')
         self.server.sendmail(self.config.user, self.data['recipients'], message.as_string())

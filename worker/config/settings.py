@@ -42,3 +42,12 @@ class URLSettings(BaseSettings):
 
     class Config:
         env_prefix = "SHORT_URL_"
+
+class PostgresSettings(BaseSettings):
+    host: str = env('POSTGRES_HOST')
+    port: int = env('POSTGRES_PORT')
+    dbname: str = env('POSTGRES_DB')
+    password: str = env('POSTGRES_PASSWORD')
+    user: str = env('POSTGRES_USER')
+    class Config:
+        env_prefix = "POSTGRES_"

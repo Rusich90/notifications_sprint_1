@@ -1,0 +1,9 @@
+{# this is core/templates/admin/core/rule/change_form.html #}
+{% extends 'admin/change_form.html' %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }} {# This calls super to get the default layout#}
+    <div  class="submit-row">  {# this button will POST request with the name 'execute' #}
+       <input  type="submit"  value="Send to users"  name="send">
+    </div>
+{% endblock %}

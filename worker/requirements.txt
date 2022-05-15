@@ -4,3 +4,4 @@ pydantic==1.9.0
 django-environ==0.8.1
 requests==2.27.1
 backoff==1.11.1
+psycopg2-binary==2.9.2
